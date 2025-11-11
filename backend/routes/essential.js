@@ -30,7 +30,7 @@ try {
 // --- CONFIGURACIÓN DE MIDDLEWARE Y CORS ---
 router.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://integraciondesistemas.netlify.app",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     credentials: true,
   })
@@ -44,7 +44,7 @@ const stripe = new Stripe(STRIPE_SECRET);
 
 const COINGATE_TOKEN = process.env.COINGATE_TOKEN_SANDBOX || "";
 const COINGATE_API = "https://api-sandbox.coingate.com/v2/orders";
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "https://integraciondesistemas.netlify.app";
 
 // Simulación de base de datos (en memoria)
 const ORDERS = {};
