@@ -1,4 +1,3 @@
-// src/components/ProductTable.jsx
 import React from "react";
 
 const ProductTable = ({ products, onApprove, onReject, onDelete }) => {
@@ -7,6 +6,7 @@ const ProductTable = ({ products, onApprove, onReject, onDelete }) => {
       <table className="min-w-full border border-gray-200">
         <thead className="bg-[#8C9985] text-white">
           <tr>
+            <th className="px-6 py-3 text-left text-sm font-semibold">Tipo</th>
             <th className="px-6 py-3 text-left text-sm font-semibold">
               Título
             </th>
@@ -28,15 +28,20 @@ const ProductTable = ({ products, onApprove, onReject, onDelete }) => {
           {products.length === 0 ? (
             <tr>
               <td
-                colSpan="5"
+                colSpan="6"
                 className="px-6 py-4 text-center text-gray-500 italic"
               >
-                No hay productos disponibles
+                No hay productos o recursos disponibles
               </td>
             </tr>
           ) : (
             products.map((product) => (
               <tr key={product._id} className="hover:bg-gray-50">
+                {/* Tipo */}
+                <td className="px-6 py-4 text-sm capitalize">
+                  {product.tipo || "producto"}
+                </td>
+
                 {/* Título */}
                 <td className="px-6 py-4 text-sm">{product.titulo}</td>
 
@@ -45,7 +50,11 @@ const ProductTable = ({ products, onApprove, onReject, onDelete }) => {
 
                 {/* Precio */}
                 <td className="px-6 py-4 text-sm">
-                  S/ {product.precio ? product.precio.toFixed(2) : "0.00"}
+                  {product.tipo === "recurso"
+                    ? product.precio === 0
+                      ? "Gratis"
+                      : `S/ ${product.precio?.toFixed(2) || "0.00"}`
+                    : `S/ ${product.precio?.toFixed(2) || "0.00"}`}
                 </td>
 
                 {/* Estado */}
@@ -59,7 +68,7 @@ const ProductTable = ({ products, onApprove, onReject, onDelete }) => {
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
-                    {product.estado}
+                    {product.estado || "pendiente"}
                   </span>
                 </td>
 

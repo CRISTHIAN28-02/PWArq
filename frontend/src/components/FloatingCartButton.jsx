@@ -15,7 +15,7 @@ const FloatingCartButton = () => {
   return (
     <div
       onClick={() => navigate("/carrito")}
-      className="fixed bottom-14 right-4 w-15 h-15 sm:w-15 sm:h-15 md:w-28 md:h-28 
+      className="fixed bottom-14 left-4 w-15 h-15 sm:w-15 sm:h-15 md:w-28 md:h-28 
                  bg-white rounded-full shadow-lg flex items-center justify-center 
                  cursor-pointer hover:scale-110 transition-transform duration-300"
       style={{ zIndex: 1000 }}

@@ -2,10 +2,10 @@
 import axios from "axios";
 import requestNewAccessToken from "../auth/requestNewAccessToken.js";
 
-// URL base de tu backend
+// 🌐 URL base del backend (solo productos)
 const API_URL = "http://localhost:4000/api/products";
 
-// Instancia de axios con interceptores
+// 🧩 Instancia de axios con interceptores
 const api = axios.create({
   baseURL: API_URL,
 });
@@ -28,7 +28,6 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Evitar bucles infinitos
     if (
       (error.response?.status === 401 || error.response?.status === 403) &&
       !originalRequest._retry
@@ -47,8 +46,6 @@ api.interceptors.response.use(
 
         if (newAccessToken) {
           console.log("✅ Nuevo accessToken obtenido:", newAccessToken);
-
-          // Guardar el nuevo accessToken (manteniendo el mismo refreshToken)
           localStorage.setItem("accessToken", newAccessToken);
 
           // Reintentar la request original con el nuevo token
@@ -68,6 +65,10 @@ api.interceptors.response.use(
   }
 );
 
+//
+// 🛒 PRODUCTOS
+//
+
 // 📌 Obtener productos aprobados (público)
 export const getApprovedProducts = async () => {
   try {
@@ -75,7 +76,7 @@ export const getApprovedProducts = async () => {
     return response.data;
   } catch (error) {
     console.error(
-      "Error al obtener productos aprobados:",
+      "❌ Error al obtener productos aprobados:",
       error.response?.data || error.message
     );
     throw error;
@@ -89,7 +90,7 @@ export const getAllProducts = async () => {
     return response.data;
   } catch (error) {
     console.error(
-      "Error al obtener todos los productos:",
+      "❌ Error al obtener todos los productos:",
       error.response?.data || error.message
     );
     throw error;
@@ -103,7 +104,7 @@ export const getPendingProducts = async () => {
     return response.data;
   } catch (error) {
     console.error(
-      "Error al obtener productos pendientes:",
+      "❌ Error al obtener productos pendientes:",
       error.response?.data || error.message
     );
     throw error;
@@ -139,7 +140,7 @@ export const approveProduct = async (id) => {
     return response.data;
   } catch (error) {
     console.error(
-      `Error al aprobar el producto con id ${id}:`,
+      `❌ Error al aprobar producto con id ${id}:`,
       error.response?.data || error.message
     );
     throw error;
@@ -153,7 +154,7 @@ export const rejectProduct = async (id) => {
     return response.data;
   } catch (error) {
     console.error(
-      `Error al rechazar el producto con id ${id}:`,
+      `❌ Error al rechazar producto con id ${id}:`,
       error.response?.data || error.message
     );
     throw error;
@@ -167,7 +168,7 @@ export const deleteProduct = async (id) => {
     return response.data;
   } catch (error) {
     console.error(
-      `Error al eliminar el producto con id ${id}:`,
+      `❌ Error al eliminar producto con id ${id}:`,
       error.response?.data || error.message
     );
     throw error;
@@ -181,7 +182,7 @@ export const getProductById = async (id) => {
     return response.data;
   } catch (error) {
     console.error(
-      `Error al obtener el producto con id ${id}:`,
+      `❌ Error al obtener producto con id ${id}:`,
       error.response?.data || error.message
     );
     throw error;

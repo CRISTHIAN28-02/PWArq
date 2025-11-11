@@ -17,15 +17,15 @@ export default function Carrito({ onClose = () => {} }) {
   };
 
   const handlePago = async () => {
-    if (selectedPayment === "culqi") {
-      try {
+    try {
+      // 🟢 1️⃣ Culqi
+      if (selectedPayment === "culqi") {
         const token = await openCulqi({
           amount: total,
           email: "cliente@demo.com",
         });
 
         const res = await fetch("http://localhost:4000/api/pagos/pagar", {
-          //"http://localhost:4000/api/pagos/pagar"
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -55,20 +55,16 @@ export default function Carrito({ onClose = () => {} }) {
               (data.error ? data.error.merchant_message : "Error desconocido.")
           );
         }
-      } catch (err) {
-        console.error("Error en el pago con Culqi:", err);
-        alert(`❌ Error al procesar el pago con Culqi: ${err.message || err}`);
       }
-    } else if (selectedPayment === "paypal") {
-      try {
+
+      // 🟡 2️⃣ PayPal
+      else if (selectedPayment === "paypal") {
         const res = await fetch(
-          "http://localhost:4000/api/paypal/crear-orden", //"http://localhost:4000/api/paypal/crear-orden"
+          "http://localhost:4000/api/paypal/crear-orden",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              amount: total,
-            }),
+            body: JSON.stringify({ amount: total }),
           }
         );
 
@@ -85,45 +81,74 @@ export default function Carrito({ onClose = () => {} }) {
             "No se pudo crear la orden de PayPal o no se encontró el enlace de aprobación."
           );
         }
-      } catch (err) {
-        console.error("Error al crear la orden de PayPal:", err);
-        alert(`❌ Error al crear la orden de PayPal: ${err.message || err}`);
       }
-    } else if (selectedPayment === "coinbase") {
-      try {
-        console.log("🪙 Iniciando pago con Coinbase Commerce...");
+
+      // 💳 4️⃣ Stripe
+      else if (selectedPayment === "stripe") {
+        console.log("💳 Creando sesión de pago Stripe...");
         const res = await fetch(
-          "http://localhost:4000/api/coinbase/create-checkout", //"http://localhost:4000/api/coinbase/create-checkout"
+          "http://localhost:4000/api/essential/create-checkout",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              amount: total,
-              cart: cart.map((item) => ({
-                id: item._id || item.id,
-                titulo: item.titulo,
-                precio: item.precio,
+              cartItems: cart.map((item) => ({
+                title: item.titulo,
+                price: item.precio,
+                quantity: 1,
               })),
+              method: "card",
             }),
           }
         );
 
         const data = await res.json();
-        console.log("🪙 Respuesta del backend (Coinbase):", data);
+        console.log("💳 Stripe session:", data);
 
-        if (data.success && data.url) {
-          alert(
-            "✅ Redirigiendo a Coinbase Commerce para completar tu pago..."
-          );
+        if (data.ok && data.checkoutUrl) {
+          alert("✅ Redirigiendo al checkout de Stripe...");
           clearCart();
-          window.location.href = data.url; // 👉 Redirección al checkout de Coinbase
+          window.location.href = data.checkoutUrl;
         } else {
-          throw new Error(data.error || "No se pudo crear el checkout.");
+          throw new Error(data.error || "Error creando sesión de Stripe.");
         }
-      } catch (err) {
-        console.error("Error en pago con Coinbase:", err);
-        alert(`❌ Error en pago con Coinbase: ${err.message || err}`);
       }
+
+      // 🪙 5️⃣ CoinGate (Crypto)
+      else if (selectedPayment === "coingate") {
+        console.log("🪙 Iniciando pago con CoinGate...");
+        const res = await fetch(
+          "http://localhost:4000/api/essential/create-checkout",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cartItems: cart.map((item) => ({
+                title: item.titulo,
+                price: item.precio,
+                quantity: 1,
+              })),
+              method: "crypto",
+            }),
+          }
+        );
+
+        const data = await res.json();
+        console.log("🪙 CoinGate session:", data);
+
+        if (data.ok && data.checkoutUrl) {
+          alert("✅ Redirigiendo al checkout de CoinGate...");
+          clearCart();
+          window.location.href = data.checkoutUrl;
+        } else {
+          throw new Error(data.error || "Error creando orden en CoinGate.");
+        }
+      } else {
+        alert("⚠️ Selecciona un método de pago antes de continuar.");
+      }
+    } catch (err) {
+      console.error("Error al procesar pago:", err);
+      alert(`❌ Error: ${err.message || err}`);
     }
   };
 
@@ -173,20 +198,37 @@ export default function Carrito({ onClose = () => {} }) {
             <span className="text-lg text-gray-700 font-semibold">PayPal</span>
           </label>
 
-          {/* Coinbase (Criptomonedas) */}
+          {/* Stripe */}
           <label
             className="flex items-center gap-3 cursor-pointer"
-            onClick={() => setSelectedPayment("coinbase")}
+            onClick={() => setSelectedPayment("stripe")}
           >
             <span
               className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                selectedPayment === "coinbase"
+                selectedPayment === "stripe"
                   ? "border-[#8C9985] bg-[#8C9985]"
                   : "border-gray-400"
               }`}
             ></span>
             <span className="text-lg text-gray-700 font-semibold">
-              Coinbase (Criptomonedas)
+              Tarjeta (Stripe)
+            </span>
+          </label>
+
+          {/* CoinGate */}
+          <label
+            className="flex items-center gap-3 cursor-pointer"
+            onClick={() => setSelectedPayment("coingate")}
+          >
+            <span
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                selectedPayment === "coingate"
+                  ? "border-[#8C9985] bg-[#8C9985]"
+                  : "border-gray-400"
+              }`}
+            ></span>
+            <span className="text-lg text-gray-700 font-semibold">
+              CoinGate (Crypto)
             </span>
           </label>
 

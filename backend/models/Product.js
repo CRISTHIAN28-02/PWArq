@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+// models/Product.js
+const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
@@ -52,13 +53,14 @@ const productSchema = new mongoose.Schema(
     },
     creadoPor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // referencia al modelo de usuario
+      ref: "User",
       required: true,
     },
   },
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", productSchema);
+const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
 
-export default Product;
+module.exports = Product;

@@ -1,89 +1,195 @@
-import React from "react";
+// src/pages/Recursos.jsx
+import React, { useEffect, useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
-import { FiDownload, FiSearch } from "react-icons/fi";
+import ProductCard from "../components/ProductCard";
+import { getApprovedResources } from "../services/resourceService";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCart } from "../components/CartContext";
 
 const Recursos = () => {
-  const recursos = [
-    {
-      id: 1,
-      titulo: "Plano de Casa Minimalista",
-      descripcion: "Archivo DWG y PDF con detalles arquitectónicos.",
-      tipo: "Plano",
-    },
-    {
-      id: 2,
-      titulo: "Render Interior Sala",
-      descripcion: "Render fotorrealista de sala moderna.",
-      tipo: "Render",
-    },
-    {
-      id: 3,
-      titulo: "Modelo 3D SketchUp",
-      descripcion: "Proyecto en formato SKP editable.",
-      tipo: "3D",
-    },
-  ];
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [currentImage, setCurrentImage] = useState(0);
+
+  const { addToCart } = useCart();
+
+  // 🔹 Cargar recursos aprobados desde el backend
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const data = await getApprovedResources();
+        // Asegurar que solo se muestren recursos válidos y aprobados
+        const approvedResources = Array.isArray(data)
+          ? data.filter(
+              (item) => item.estado === "aprobado" && item.tipo === "recurso"
+            )
+          : [];
+        setResources(approvedResources);
+      } catch (err) {
+        console.error("❌ Error al cargar recursos:", err);
+        setError("No se pudieron cargar los recursos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResources();
+  }, []);
+
+  // 🔹 Agregar recurso al carrito
+  const handleAddToCart = (resource) => {
+    const resourceToAdd = {
+      _id: resource._id,
+      titulo: resource.titulo,
+      precio: resource.precio || 0,
+      tipo: "recurso",
+      imagen:
+        resource.imagenes?.length > 0
+          ? resource.imagenes[0]
+          : "https://via.placeholder.com/400x300.png?text=Recurso",
+    };
+
+    addToCart(resourceToAdd);
+    alert("📚 Recurso agregado al carrito correctamente");
+  };
+
+  // 🔹 Navegación entre imágenes del modal
+  const handlePrevImage = () => {
+    if (selectedResource?.imagenes?.length) {
+      setCurrentImage((prev) =>
+        prev === 0 ? selectedResource.imagenes.length - 1 : prev - 1
+      );
+    }
+  };
+
+  const handleNextImage = () => {
+    if (selectedResource?.imagenes?.length) {
+      setCurrentImage((prev) =>
+        prev === selectedResource.imagenes.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedResource(null);
+    setCurrentImage(0);
+  };
 
   return (
     <>
       <Header />
 
-      {/* Contenido principal */}
-      <main className="pt-24 min-h-screen bg-gradient-to-b from-[#8C9985] via-[#A5B29D] to-white">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Encabezado */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
-              Recursos Gratuitos de Arquitectura
-            </h1>
-            <p className="mt-4 text-lg text-gray-100">
-              Encuentra planos, renders y modelos 3D compartidos por estudiantes
-              y profesionales.
+      <main className="pt-20 min-h-screen bg-gray-50">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-4xl font-bold text-center my-10 text-[#8C9985]">
+            Recursos disponibles
+          </h1>
+
+          {loading && (
+            <p className="text-center text-gray-600">Cargando recursos...</p>
+          )}
+
+          {error && <p className="text-center text-red-500">{error}</p>}
+
+          {!loading && !error && resources.length === 0 && (
+            <p className="text-center text-gray-600">
+              No hay recursos disponibles por el momento.
             </p>
-          </div>
+          )}
 
-          {/* Buscador */}
-          <div className="flex justify-center mb-10">
-            <div className="flex items-center bg-white rounded-full shadow-lg w-full md:w-2/3 lg:w-1/2 px-4 py-2">
-              <FiSearch className="text-gray-500 text-xl mr-2" />
-              <input
-                type="text"
-                placeholder="Buscar recursos..."
-                className="w-full outline-none text-gray-700"
-              />
-            </div>
-          </div>
-
-          {/* Grid de recursos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {recursos.map((item) => (
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {resources.map((resource) => (
               <div
-                key={item.id}
-                className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition p-6 flex flex-col justify-between"
+                key={resource._id}
+                onClick={() => setSelectedResource(resource)}
+                className="cursor-pointer"
               >
-                <div>
-                  <span className="px-3 py-1 text-sm rounded-full bg-[#8C9985] text-white">
-                    {item.tipo}
-                  </span>
-                  <h2 className="text-xl font-bold mt-4 text-gray-800">
-                    {item.titulo}
-                  </h2>
-                  <p className="mt-2 text-gray-600 text-sm">
-                    {item.descripcion}
-                  </p>
-                </div>
-                <button className="mt-6 flex items-center justify-center gap-2 bg-[#8C9985] text-white py-2 px-4 rounded-xl shadow hover:bg-[#7B8874] transition">
-                  <FiDownload />
-                  Descargar
-                </button>
+                <ProductCard product={resource} />
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </main>
 
       <Footer />
+
+      {/* 🔹 Modal para ver detalles del recurso */}
+      {selectedResource && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-5xl w-full flex flex-col md:flex-row overflow-hidden">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
+            >
+              <X size={28} />
+            </button>
+
+            {/* Carrusel de imágenes */}
+            <div className="relative w-full md:w-2/3 h-96 bg-black flex items-center justify-center">
+              {selectedResource.imagenes?.length > 0 ? (
+                <img
+                  src={selectedResource.imagenes[currentImage]}
+                  alt={selectedResource.titulo}
+                  className="h-full w-full object-contain max-h-96"
+                />
+              ) : (
+                <img
+                  src="https://via.placeholder.com/600x400.png?text=Recurso"
+                  alt="Recurso"
+                  className="h-full w-full object-contain"
+                />
+              )}
+
+              {selectedResource.imagenes?.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevImage();
+                    }}
+                    className="absolute left-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70"
+                  >
+                    <ChevronLeft size={28} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                    className="absolute right-4 text-white bg-black/40 rounded-full p-2 hover:bg-black/70"
+                  >
+                    <ChevronRight size={28} />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Información del recurso */}
+            <div className="w-full md:w-1/3 p-6 flex flex-col justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+                  {selectedResource.titulo}
+                </h2>
+                <p className="text-lg text-gray-700 font-semibold mb-2">
+                  S/ {selectedResource.precio}
+                </p>
+                <p className="text-gray-600 mb-4">
+                  {selectedResource.descripcion}
+                </p>
+              </div>
+
+              <button
+                onClick={() => handleAddToCart(selectedResource)}
+                className="bg-[#8C9985] text-white py-3 rounded-xl font-semibold hover:bg-[#7A8574] transition-colors"
+              >
+                Agregar al carrito
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

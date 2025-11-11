@@ -20,6 +20,7 @@ import FloatingCartButton from "./components/FloatingCartButton";
 // import Chatbot from "./components/Chatbot";
 import "./index.css";
 //import N8nChatbot from "./components/n8ncb"; // 👉 Ruta añadida del chatbot n8n
+import ChatbotGemini from "./components/ChatbotGemini"; // ✅ Nuevo chatbot con Google Generative AI
 
 // 👇 Layout global que envuelve cada página
 const AppLayout = () => {
@@ -29,6 +30,8 @@ const AppLayout = () => {
       {/* <N8nChatbot /> {/* ✅ Chatbot flotante agregado */}
       <FloatingCartButton /> {/* Botón dentro del contexto del Router */}
       {/* <Chatbot /> {/* Componente del chatbot */}
+      <ChatbotGemini />{" "}
+      {/* ✅ Nuevo chatbot flotante con Google Generative AI */}
     </div>
   );
 };

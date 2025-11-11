@@ -1,8 +1,8 @@
-// src/components/ProductForm.jsx
 import React, { useState } from "react";
 
 const ProductForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
+    tipo: "producto", // 👈 nuevo campo (producto o recurso)
     titulo: "",
     descripcion: "",
     precio: "",
@@ -28,6 +28,7 @@ const ProductForm = ({ onSubmit }) => {
 
     // Normalizar datos antes de enviarlos al backend
     const normalizedData = {
+      tipo: formData.tipo, // 👈 producto o recurso
       titulo: formData.titulo.trim(),
       descripcion: formData.descripcion.trim(),
       precio: formData.precio ? Number(formData.precio) : null,
@@ -47,6 +48,7 @@ const ProductForm = ({ onSubmit }) => {
 
     // Reset form
     setFormData({
+      tipo: "producto",
       titulo: "",
       descripcion: "",
       precio: "",
@@ -61,8 +63,24 @@ const ProductForm = ({ onSubmit }) => {
       className="max-w-lg mx-auto bg-white shadow-lg rounded-xl p-6 space-y-4 border border-gray-200"
     >
       <h2 className="text-2xl font-bold text-[#8C9985] text-center">
-        Subir Nuevo Producto
+        Subir Nuevo {formData.tipo === "producto" ? "Producto" : "Recurso"}
       </h2>
+
+      {/* Tipo: producto o recurso */}
+      <div>
+        <label className="block text-gray-700 font-medium">
+          Tipo de publicación
+        </label>
+        <select
+          name="tipo"
+          value={formData.tipo}
+          onChange={handleChange}
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#8C9985] outline-none"
+        >
+          <option value="producto">Producto</option>
+          <option value="recurso">Recurso</option>
+        </select>
+      </div>
 
       {/* Título */}
       <div>
@@ -72,7 +90,11 @@ const ProductForm = ({ onSubmit }) => {
           name="titulo"
           value={formData.titulo}
           onChange={handleChange}
-          placeholder="Ej. Proyecto de Arquitectura"
+          placeholder={
+            formData.tipo === "producto"
+              ? "Ej. Maqueta de vivienda moderna"
+              : "Ej. Plantilla CAD de planos"
+          }
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#8C9985] outline-none"
           required
         />
@@ -85,14 +107,18 @@ const ProductForm = ({ onSubmit }) => {
           name="descripcion"
           value={formData.descripcion}
           onChange={handleChange}
-          placeholder="Describe el recurso o proyecto..."
+          placeholder={
+            formData.tipo === "producto"
+              ? "Describe el producto..."
+              : "Describe el recurso (archivos, guías, referencias...)"
+          }
           rows="4"
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#8C9985] outline-none"
           required
         ></textarea>
       </div>
 
-      {/* Precio */}
+      {/* Precio (opcional para recursos) */}
       <div>
         <label className="block text-gray-700 font-medium">Precio *</label>
         <input
@@ -102,10 +128,15 @@ const ProductForm = ({ onSubmit }) => {
           onChange={handleChange}
           placeholder="Ej. 50.00"
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#8C9985] outline-none"
-          min="1"
+          min="0"
           step="0.01"
-          required
+          required={formData.tipo === "producto"} // 👈 solo obligatorio si es producto
         />
+        {formData.tipo === "recurso" && (
+          <p className="text-sm text-gray-500 mt-1">
+            Si es un recurso gratuito, deja el precio en 0.
+          </p>
+        )}
       </div>
 
       {/* Tags */}
@@ -127,7 +158,7 @@ const ProductForm = ({ onSubmit }) => {
       {/* Imágenes */}
       <div>
         <label className="block text-gray-700 font-medium">
-          URLs de Imágenes (mínimo 3, separadas por coma) *
+          URLs de Imágenes (mínimo 1, separadas por coma) *
         </label>
         <input
           type="text"
@@ -145,7 +176,7 @@ const ProductForm = ({ onSubmit }) => {
         type="submit"
         className="w-full bg-[#8C9985] text-white py-3 rounded-lg font-semibold text-lg transition-all duration-300 hover:opacity-90 hover:scale-[1.02]"
       >
-        Guardar Producto
+        Guardar {formData.tipo === "producto" ? "Producto" : "Recurso"}
       </button>
     </form>
   );

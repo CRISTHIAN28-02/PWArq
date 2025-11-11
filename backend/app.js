@@ -8,6 +8,8 @@ const bodyParser = require("body-parser");
 const authenticateToken = require("./auth/authenticateToken");
 const log = require("./lib/trace"); // Si no usas log/trace, puedes quitar esta línea
 const profileRoutes = require("./routes/profile");
+const essentialRoutes = require("./routes/essential"); // ✅ Ruta esencial
+const productRoutes = require("./routes/productRoutes"); // ✅ Nueva ruta productos + recursos
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -17,14 +19,7 @@ const port = process.env.PORT || 4000;
 // ===================================================
 // 🚨 IMPORTANTE: Este middleware DEBE ir antes de 'app.use(express.json())'
 // para poder acceder al cuerpo RAW, necesario para verificar la firma del webhook.
-app.use(
-  "/api/coinbase/webhook",
-  bodyParser.raw({ type: "*/*" }),
-  (req, res, next) => {
-    req.rawBody = req.body; // Guarda el raw body (Buffer) para verificar la firma
-    next();
-  }
-);
+/* Bloque de Coinbase Webhook eliminado */
 
 // ===================================================
 // 📦 Middlewares globales
@@ -46,7 +41,7 @@ main().catch((err) => {
 
 async function main() {
   try {
-    // 🟢 CORRECCIÓN: Se eliminaron las opciones deprecated de Mongoose
+    // 🟢 Conexión a MongoDB (sin opciones deprecated)
     await mongoose.connect(process.env.DB_CONNECTION_STRING);
     console.log("✅ Conectado a la base de datos");
   } catch (error) {
@@ -62,6 +57,9 @@ async function main() {
 // ✅ Rutas de perfil
 app.use("/api/profile", profileRoutes);
 
+// ✅ Rutas esenciales
+app.use("/api/essential", essentialRoutes);
+
 // ✅ Rutas de autenticación
 app.use("/api/signup", require("./routes/signup"));
 app.use("/api/login", require("./routes/login"));
@@ -76,18 +74,14 @@ app.use("/api/posts", authenticateToken, require("./routes/posts"));
 // ✅ Rutas de usuario
 app.use("/api/user", authenticateToken, require("./routes/user"));
 
-// ✅ Rutas de productos
-app.use("/api/products", require("./routes/productRoutes"));
+// ✅ Rutas de productos y recursos
+app.use("/api/products", productRoutes);
 
 // ✅ Pagos con Culqi
 app.use("/api/pagos", require("./routes/pagos"));
 
 // ✅ Pagos con PayPal
 app.use("/api/paypal", require("./services/Paypal"));
-
-// ✅ Pagos con Coinbase Commerce
-const coinbaseRoutes = require("./routes/coinbase.routes");
-app.use("/api/coinbase", coinbaseRoutes);
 
 // ===================================================
 // 🚀 Servidor
